@@ -18,7 +18,6 @@ services:
     region: oregon
     dockerfile: ./backend/Dockerfile
     dockerContext: ./backend
-    preDeployCommand: php artisan migrate --force && php artisan db:seed --force
     envVars:
       - key: APP_ENV
         value: production

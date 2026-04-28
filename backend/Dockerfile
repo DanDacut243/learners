@@ -44,8 +44,12 @@ COPY docker/nginx.conf /etc/nginx/sites-enabled/default
 # Copy supervisor configuration
 COPY docker/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
+# Copy and make startup script executable
+COPY docker/startup.sh /usr/local/bin/startup.sh
+RUN chmod +x /usr/local/bin/startup.sh
+
 # Expose port 80 for HTTP
 EXPOSE 80
 
-# Start supervisor (which manages both Nginx and PHP-FPM)
-CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]
+# Start the application using the startup script
+CMD ["/usr/local/bin/startup.sh"]
