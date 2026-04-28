@@ -1,17 +1,14 @@
 ﻿FROM php:8.2-fpm
 
-# Install essential packages
+# Install build tools and dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
     curl \
     git \
     libpq-dev \
-    libzip-dev \
-    && docker-php-ext-install -j$(nproc) \
-        pdo \
-        pdo_pgsql \
-        zip \
-        json \
-    && rm -rf /var/lib/apt/lists/*
+    && docker-php-ext-install pdo_pgsql \
+    && apt-get purge -y build-essential \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Install Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
