@@ -8,13 +8,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     postgresql-client \
     libxml2 \
     libxml2-dev \
-    libxslt1-dev \
     libzip-dev \
     zip \
     unzip \
-    pkg-config \
     && docker-php-ext-configure pgsql -with-pgsql=/usr/local/pgsql \
-    && docker-php-ext-configure dom --with-libxml-dir=/usr \
     && docker-php-ext-install -j$(nproc) \
         pdo \
         pdo_pgsql \
