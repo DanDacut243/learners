@@ -1,5 +1,17 @@
 services:
   - type: web
+    name: erudite-frontend
+    runtime: docker
+    plan: standard
+    region: oregon
+    dockerfile: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /
+    envVars:
+      - key: VITE_API_URL
+        value: https://erudite-api.onrender.com/api
+
+  - type: web
     name: erudite-api
     runtime: docker
     plan: standard
