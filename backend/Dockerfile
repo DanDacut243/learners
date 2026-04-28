@@ -1,23 +1,27 @@
-FROM php:8.2-fpm
+FROM php:8.2-cli
 
 # Install system dependencies
-RUN apt-get update && apt-get install -y \
+RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     git \
     libpq-dev \
     postgresql-client \
+    libzip-dev \
+    zip \
+    unzip \
+    && docker-php-ext-configure pgsql -with-pgsql=/usr/local/pgsql \
+    && docker-php-ext-install -j$(nproc) \
+        pdo \
+        pdo_pgsql \
+        pgsql \
+        session \
+        fileinfo \
+        dom \
+        bcmath \
+        ctype \
+        json \
+        zip \
     && rm -rf /var/lib/apt/lists/*
-
-# Install PHP extensions
-RUN docker-php-ext-install \
-    pdo \
-    pdo_pgsql \
-    session \
-    fileinfo \
-    dom \
-    bcmath \
-    ctype \
-    json
 
 # Install Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
@@ -28,14 +32,14 @@ WORKDIR /app
 # Copy composer files
 COPY composer.json composer.lock* ./
 
-# Install PHP dependencies
-RUN composer install --no-dev --optimize-autoloader --ignore-platform-reqs
+# Install dependencies - ignore platform requirements
+RUN composer install --no-dev --optimize-autoloader --no-interaction --no-progress --ignore-platform-reqs
 
 # Copy application code
 COPY . .
 
 # Generate Laravel key
-RUN php artisan key:generate --force || true
+RUN php artisan key:generate --force 2>/dev/null || echo "Key generation skipped"
 
 # Create storage directories
 RUN mkdir -p storage/logs storage/framework/sessions storage/framework/views storage/framework/cache && \
@@ -44,9 +48,5 @@ RUN mkdir -p storage/logs storage/framework/sessions storage/framework/views sto
 # Expose port
 EXPOSE 8000
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-    CMD curl -f http://localhost:8000/api/health || exit 1
-
 # Run migrations and start server
-CMD ["sh", "-c", "php artisan migrate --force && php artisan serve --host=0.0.0.0 --port=8000"]
+CMD ["php", "artisan", "serve", "--host=0.0.0.0", "--port=8000"]
