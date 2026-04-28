@@ -1,11 +1,13 @@
 ﻿FROM php:8.2-fpm
 
-# Install build tools and dependencies
+# Install build tools, dependencies, and Nginx
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     curl \
     git \
     libpq-dev \
+    nginx \
+    supervisor \
     && docker-php-ext-install pdo_pgsql \
     && apt-get purge -y build-essential \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
@@ -32,8 +34,18 @@ RUN php artisan key:generate --force 2>/dev/null || echo "Key generation skipped
 RUN mkdir -p storage/logs storage/framework/sessions storage/framework/views storage/framework/cache && \
     chmod -R 777 storage bootstrap/cache
 
-# Expose port
-EXPOSE 9000
+# Configure Nginx
+RUN mkdir -p /var/www/html && \
+    rm /etc/nginx/sites-enabled/default
 
-# Start PHP-FPM
-CMD ["php-fpm"]
+# Copy Nginx configuration
+COPY docker/nginx.conf /etc/nginx/sites-enabled/default
+
+# Copy supervisor configuration
+COPY docker/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+
+# Expose port 80 for HTTP
+EXPOSE 80
+
+# Start supervisor (which manages both Nginx and PHP-FPM)
+CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]
