@@ -6,6 +6,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     git \
     libpq-dev \
     postgresql-client \
+    libxml2-dev \
     libzip-dev \
     zip \
     unzip \
