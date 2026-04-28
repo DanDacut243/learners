@@ -1,12 +1,12 @@
-FROM php:8.2-fpm-alpine
+FROM php:8.2-fpm
 
 # Install system dependencies
-RUN apk add --no-cache \
+RUN apt-get update && apt-get install -y \
     curl \
     git \
-    composer \
-    postgresql-dev \
-    postgresql-client
+    libpq-dev \
+    postgresql-client \
+    && rm -rf /var/lib/apt/lists/*
 
 # Install PHP extensions
 RUN docker-php-ext-install \
@@ -14,7 +14,13 @@ RUN docker-php-ext-install \
     pdo_pgsql \
     session \
     fileinfo \
-    dom
+    dom \
+    bcmath \
+    ctype \
+    json
+
+# Install Composer
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
 # Set working directory
 WORKDIR /app
