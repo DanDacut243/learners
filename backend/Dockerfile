@@ -9,7 +9,12 @@ RUN apk add --no-cache \
     postgresql-client
 
 # Install PHP extensions
-RUN docker-php-ext-install pdo pdo_pgsql
+RUN docker-php-ext-install \
+    pdo \
+    pdo_pgsql \
+    session \
+    fileinfo \
+    dom
 
 # Set working directory
 WORKDIR /app
@@ -18,7 +23,7 @@ WORKDIR /app
 COPY composer.json composer.lock* ./
 
 # Install PHP dependencies
-RUN composer install --no-dev --optimize-autoloader
+RUN composer install --no-dev --optimize-autoloader --ignore-platform-reqs
 
 # Copy application code
 COPY . .
