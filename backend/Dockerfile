@@ -1,27 +1,17 @@
-FROM php:8.2-cli
+FROM php:8.2-fpm-alpine
 
-# Install system dependencies
-RUN apt-get update && apt-get install -y --no-install-recommends \
+# Install essential packages
+RUN apk add --no-cache \
     curl \
     git \
-    libpq-dev \
-    postgresql-client \
-    libxml2 \
-    libxml2-dev \
+    postgresql-dev \
     libzip-dev \
-    zip \
-    unzip \
-    && docker-php-ext-configure pgsql -with-pgsql=/usr/local/pgsql \
     && docker-php-ext-install -j$(nproc) \
         pdo \
         pdo_pgsql \
-        pgsql \
-        session \
-        fileinfo \
-        bcmath \
-        ctype \
-        json \
         zip \
+        json \
+    && apk del postgresql-dev \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Composer
@@ -47,7 +37,10 @@ RUN mkdir -p storage/logs storage/framework/sessions storage/framework/views sto
     chmod -R 777 storage bootstrap/cache
 
 # Expose port
-EXPOSE 8000
+EXPOSE 9000
+
+# Start PHP-FPM
+CMD ["php-fpm"]
 
 # Run migrations and start server
 CMD ["php", "artisan", "serve", "--host=0.0.0.0", "--port=8000"]
